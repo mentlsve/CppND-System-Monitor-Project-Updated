@@ -69,6 +69,15 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
+int extract_memory_value(vector<string> line, string identifier) {
+  
+  static const int identifier_idx = 0;
+  static const int value_idx = 1;
+
+  assert(line.at(identifier_idx).find(identifier) == 0);
+  return std::stoi(line.at(value_idx));
+}
+
 // TODO: Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() { 
 
@@ -80,25 +89,18 @@ float LinuxParser::MemoryUtilization() {
   long int cached; // In-memory cache for files read from the disk (the page cache). Doesn't include SwapCached.
 
   vector<vector<string>> lines = file_to_tokenized_lines(kProcDirectory + kMeminfoFilename);
+  
+  vector<string> mem_total_line = lines.at(0);
+  mem_total = extract_memory_value(mem_total_line, "MemTotal");
 
-  const int identifier_idx = 0;
-  const int value_idx = 1;
+  vector<string> mem_free_line = lines.at(1);
+  mem_free = extract_memory_value(mem_free_line, "MemFree");
 
-  const int mem_total_line_number = 0;
-  assert(lines.at(mem_total_line_number).at(identifier_idx).find("MemTotal") == 0);
-    mem_total = std::stoi(lines.at(mem_total_line_number).at(value_idx));
+  vector<string> mem_buffers_line = lines.at(3);
+  buffers = extract_memory_value(mem_buffers_line, "Buffers");
 
-  const int mem_free_line_number = 1;
-  assert(lines.at(mem_free_line_number).at(identifier_idx).find("MemFree") == 0);
-    mem_free = std::stoi(lines.at(mem_free_line_number).at(value_idx));
-
-  const int buffers_line_number = 3;
-    assert(lines.at(buffers_line_number).at(identifier_idx).find("Buffers") == 0);
-    buffers = std::stoi(lines.at(buffers_line_number).at(value_idx));
-
-  const int cached_line_number = 4;
-    assert(lines.at(cached_line_number).at(identifier_idx).find("Cached") == 0);
-    cached = std::stoi(lines.at(cached_line_number).at(value_idx));
+  vector<string> mem_cached_line = lines.at(4);
+  cached = extract_memory_value(mem_cached_line, "Cached");
 
   long int total_used_memory = mem_total - mem_free + buffers + cached; // actually memory for chaches is missing here
 
