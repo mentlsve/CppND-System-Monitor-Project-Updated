@@ -107,9 +107,20 @@ float LinuxParser::MemoryUtilization() {
   return static_cast<float>(total_used_memory) / mem_total;
 }
 
-
 // TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+long LinuxParser::UpTime() { 
+
+  /*  
+    /proc/uptime
+      This file contains two numbers (values in seconds): the uptime
+      of the system (including time spent in suspend) and the amount
+      of time spent in the idle process. 
+  */
+
+  vector<vector<string>> lines = file_to_tokenized_lines(kProcDirectory + kUptimeFilename);
+  long number_of_seconds_system_has_been_up = std::stol(lines.at(0).at(0));
+  return number_of_seconds_system_has_been_up;
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
