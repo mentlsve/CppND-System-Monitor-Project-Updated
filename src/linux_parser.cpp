@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "parsing_utils.h"
+#include "process_cpu_statistics.h"
 
 using std::stof;
 using std::string;
@@ -126,6 +127,7 @@ long LinuxParser::UpTime() {
 
   vector<vector<string>> lines =
       file_to_tokenized_lines(kProcDirectory + kUptimeFilename);
+
   long number_of_seconds_system_has_been_up = std::stol(lines.at(0).at(0));
   return number_of_seconds_system_has_been_up;
 }
@@ -156,6 +158,24 @@ vector<string> LinuxParser::CpuUtilization() {
   return {};
 }
 
+// TODO: Read and return CPU utilization
+ProcessCpuStatistics LinuxParser::ProcessCpuUtilization(int pid) {
+  string proc_pid_stat_path =
+      kProcDirectory + std::to_string(pid) + kStatFilename;
+  vector<vector<string>> lines = file_to_tokenized_lines(proc_pid_stat_path);
+
+  if (lines.size() == 0 || lines.at(0).size() < LinuxParser::kStarttime_)
+    return ProcessCpuStatistics(0, 0, 0, 0, 0);
+
+  ProcessCpuStatistics processCpuStatistics(
+      std::stol(lines.at(0).at(LinuxParser::kUtime_)),
+      std::stol(lines.at(0).at(LinuxParser::kStime_)),
+      std::stol(lines.at(0).at(LinuxParser::kCutime_)),
+      std::stol(lines.at(0).at(LinuxParser::kCstime_)),
+      std::stol(lines.at(0).at(LinuxParser::kStarttime_)));
+  return processCpuStatistics;
+}
+
 // TODO: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   vector<vector<string>> lines =
@@ -182,7 +202,16 @@ int LinuxParser::RunningProcesses() {
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+  string proc_pid_cmdline_path =
+      kProcDirectory + std::to_string(pid) + kCmdlineFilename;
+  std::ifstream stream(proc_pid_cmdline_path);
+  string line{};
+  if (stream.is_open()) {
+    std::getline(stream, line);
+  }
+  return line;
+}
 
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
@@ -194,25 +223,63 @@ string LinuxParser::Uid(int pid [[maybe_unused]]) { return string(); }
 
 // TODO: Read and return the user associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::User(int pid) {
+  // get uid
+  string uid{};
+  string username{};
+
+  string proc_pid_status_path =
+      kProcDirectory + std::to_string(pid) + kStatusFilename;
+  vector<vector<string>> lines = file_to_tokenized_lines(proc_pid_status_path);
+  for (auto line : lines) {
+    if (line.at(0).find("Uid:") == 0) {
+      uid = line.at(1);
+      break;
+    }
+  }
+
+  vector<vector<string>> users = file_to_tokenized_lines(kPasswordPath, true);
+  for (auto line : users) {
+    if (line.at(2) == uid) {
+      username = line.at(0);
+      break;
+    }
+  }
+  return username;
+}
 
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
 
 // utility functions for file parsing
-vector<string> tokenize(string line) {
+vector<string> split_on_space(string line) {
   std::istringstream linestream(line);
+  // https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
   vector<string> results(std::istream_iterator<std::string>{linestream},
                          std::istream_iterator<std::string>());
   return results;
 }
 
-vector<vector<string>> file_to_tokenized_lines(string absolutePath) {
+vector<string> split_on_colon(string line) {
+  std::istringstream linestream(line);
+  vector<string> results{};
+  for (string token; std::getline(linestream, token, ':');) {
+    results.push_back(token);
+  }
+  return results;
+}
+
+vector<vector<string>> file_to_tokenized_lines(string absolutePath,
+                                               bool colon) {
   vector<vector<string>> lines;
   std::ifstream stream(absolutePath);
   for (string line; std::getline(stream, line);) {
-    lines.push_back(tokenize(line));
+    if (colon) {
+      lines.push_back(split_on_colon(line));
+    } else {
+      lines.push_back(split_on_space(line));
+    }
   }
   return lines;
 }

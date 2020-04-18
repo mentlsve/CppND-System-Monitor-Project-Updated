@@ -5,6 +5,8 @@
 #include <regex>
 #include <string>
 
+#include "process_cpu_statistics.h"
+
 namespace LinuxParser {
 // Paths
 const std::string kProcDirectory{"/proc/"};
@@ -40,6 +42,15 @@ enum CPUStates {
   kGuest_,
   kGuestNice_
 };
+
+enum ProcessCPUStates {
+  kUtime_ = 13,
+  kStime_ = 14,
+  kCutime_ = 15,
+  kCstime_ = 16,
+  kStarttime_ = 21
+};
+
 std::vector<std::string> CpuUtilization();
 long Jiffies();
 long ActiveJiffies();
@@ -52,6 +63,7 @@ std::string Ram(int pid);
 std::string Uid(int pid);
 std::string User(int pid);
 long int UpTime(int pid);
+ProcessCpuStatistics ProcessCpuUtilization(int pid);
 };  // namespace LinuxParser
 
 #endif

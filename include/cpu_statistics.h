@@ -4,7 +4,8 @@
 class CpuStatistics {
  public:
   CpuStatistics() = default;
-  CpuStatistics(int user, int nice, int system, int idle, int iowait, int irq, int softirq, int steal, int guest, int guest_nice)
+  CpuStatistics(int user, int nice, int system, int idle, int iowait, int irq,
+                int softirq, int steal, int guest, int guest_nice)
       : user_{user},
         nice_{nice},
         system_{system},
