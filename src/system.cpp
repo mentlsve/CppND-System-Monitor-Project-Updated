@@ -29,9 +29,8 @@ vector<Process>& System::Processes() {
     string user = LinuxParser::User(pid);
     ProcessCpuStatistics processCpuStatistics =
         LinuxParser::ProcessCpuUtilization(pid);
-    float cpuUtilization = processCpuStatistics.ProcessCpuUtilization();
     string cmd = LinuxParser::Command(pid);
-    auto p = Process(pid, user, cpuUtilization, cmd);
+    auto p = Process(pid, user, processCpuStatistics, cmd);
     processes_.push_back(p);
   }
   std::sort(processes_.begin(), processes_.end());

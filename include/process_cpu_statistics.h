@@ -4,6 +4,7 @@
 class ProcessCpuStatistics {
  public:
   float ProcessCpuUtilization();
+  long Starttime();
   ProcessCpuStatistics() = default;
   ProcessCpuStatistics(int utime, int stime, int cutime, int cstime,
                        int starttime)

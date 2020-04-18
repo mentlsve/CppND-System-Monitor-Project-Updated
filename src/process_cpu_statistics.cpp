@@ -15,3 +15,5 @@ float ProcessCpuStatistics::ProcessCpuUtilization() {
 
   return secondsCpuUsed / secondsSinceProcessWasStarted;
 }
+
+long ProcessCpuStatistics::Starttime() { return starttime_; }

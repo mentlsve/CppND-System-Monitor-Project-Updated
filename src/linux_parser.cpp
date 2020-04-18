@@ -262,10 +262,6 @@ string LinuxParser::User(int pid) {
   return username;
 }
 
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
-
 // utility functions for file parsing
 vector<string> split_on_space(string line) {
   std::istringstream linestream(line);
