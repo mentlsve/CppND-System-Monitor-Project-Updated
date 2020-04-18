@@ -215,7 +215,21 @@ string LinuxParser::Command(int pid) {
 
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid) {
+  string proc_pid_status_path =
+      kProcDirectory + std::to_string(pid) + kStatusFilename;
+  vector<vector<string>> lines = file_to_tokenized_lines(proc_pid_status_path);
+
+  int vmsize_in_kilobytes{0};  // Virtual memory size
+
+  for (auto line : lines) {
+    if (line.at(0) == "VmSize:") {
+      vmsize_in_kilobytes = std::stoi(line.at(1));  // value in kB
+    }
+  }
+
+  return std::to_string(vmsize_in_kilobytes / 1024);
+}
 
 // TODO: Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
